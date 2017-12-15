@@ -1,0 +1,80 @@
+#!/bin/bash
+
+#	omni
+#	a script to ease compiling and stuff
+#
+
+version=8.1
+src_dir=/home/$USER/omni$version
+device=shieldtablet
+
+
+case "$1" in
+-s | --sync)
+cd $src_dir
+repo sync -j16 --force-sync
+;;
+-c | --compile)
+#fix jack server out of memory error; also edit ~/.jack-server/config.properties and set jack.server.max-service to 1
+export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+export JACK_SERVER_VM_ARGUMENTS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+#kill & start arguments only neded after changing something above
+$src_dir/out/host/linux-x86/bin/jack-admin kill-server
+$src_dir/out/host/linux-x86/bin/jack-admin start-server
+#export USE_NINJA=flase
+if [ "$device" == "shieldtablet" ] && [ "$version" == "7" ]; then
+echo "CHERRY_PICKING for $device:"
+echo "cherry-pick: zygote: Allow device to append extra whitelisted paths"
+cd $src_dir/frameworks/base
+git fetch https://github.com/Lolzen/android_frameworks_base android-7.1
+git cherry-pick b4e543fb957b4481843b594c6a84541857451369
+echo "cherry-pick: Add powerhint function that accepts an array of data"
+git cherry-pick f341687adc4bbfd7bd7be6f695eefb6226647cb3
+echo "cherry-pick: Add stub for setCursorVisibility"
+git cherry-pick 5bc166fc55bbb5d01da3364718edeb938b76c36a
+echo "cherry-pick: Dim Layer color parameter should only be used for qcom."
+cd $src_dir/hardware/libhardware
+git fetch https://github.com/Lolzen/android_hardware_libhardware android-7.1
+git cherry-pick c3fca4ea8da79bde6ef627f01567afae435c83e7
+fi
+if [ "$device" == "shieldtablet" ] && [ "$version" == "8.1" ]; then
+cd $src_dir/system/sepolicy
+git fetch https://gerrit.omnirom.org/android_system_sepolicy refs/changes/78/27478/1 && git cherry-pick FETCH_HEAD
+fi
+cd $src_dir
+. build/envsetup.sh
+brunch $device
+cp out/target/product/$device/omni-*-HOMEMADE.zip /home/$USER/
+;;
+-d | --delete)
+cd $src_dir
+make clobber
+;;
+#-k | --kernel)
+#export EXPERIMENTAL_USE_JAVA8=true
+#export JAVA_HOME=/usr/libexec/java_home -v '1.8*'
+#export LC_ALL=C
+#cd $src_dir
+#. build/envsetup.sh
+#breakfast $device
+#make bootimage
+#;;
+*)
+echo '########################## config ###########################'
+echo 'source code directory:'
+echo $src_dir
+echo '#############################################################'
+echo '######################## commands ###########################'
+echo 'omni [options]'
+echo '--setup'
+echo 'breakfast mako & sync repo'
+echo '-s | --sync'
+echo 'update omnirom repo to latest'
+echo '-c | --compile'
+echo 'compiles the source code and copies the zip to ~/<omniROM.zip> when finished'
+echo '-d | --delete'
+echo 'delete anything compiled'
+#echo '-k | -kernel'
+#echo 'compile only the kernel as bootimage'
+;;
+esac
