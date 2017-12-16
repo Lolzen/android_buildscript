@@ -21,7 +21,7 @@ export JACK_SERVER_VM_ARGUMENTS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -X
 #kill & start arguments only neded after changing something above
 $src_dir/out/host/linux-x86/bin/jack-admin kill-server
 $src_dir/out/host/linux-x86/bin/jack-admin start-server
-#export USE_NINJA=flase
+#export USE_NINJA=false
 if [ "$device" == "shieldtablet" ] && [ "$version" == "7" ]; then
 echo "CHERRY_PICKING for $device:"
 echo "cherry-pick: zygote: Allow device to append extra whitelisted paths"
@@ -63,11 +63,15 @@ make clobber
 echo '########################## config ###########################'
 echo 'source code directory:'
 echo $src_dir
+echo 'device:'
+echo $device
+echo 'version'
+echo $version
 echo '#############################################################'
 echo '######################## commands ###########################'
 echo 'omni [options]'
 echo '--setup'
-echo 'breakfast mako & sync repo'
+echo 'breakfast' $device '& sync repo'
 echo '-s | --sync'
 echo 'update omnirom repo to latest'
 echo '-c | --compile'
