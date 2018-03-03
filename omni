@@ -16,8 +16,9 @@ repo sync -j16 --force-sync
 ;;
 -c | --compile)
 #fix jack server out of memory error; also edit ~/.jack-server/config.properties and set jack.server.max-service to 1
-export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+#export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
 export JACK_SERVER_VM_ARGUMENTS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+#note to myself: disable APU's GPU part so there's no memory reserved for the GPU part
 #kill & start arguments only neded after changing something above
 $src_dir/out/host/linux-x86/bin/jack-admin kill-server
 $src_dir/out/host/linux-x86/bin/jack-admin start-server
@@ -37,10 +38,8 @@ cd $src_dir/hardware/libhardware
 git fetch https://github.com/Lolzen/android_hardware_libhardware android-7.1
 git cherry-pick c3fca4ea8da79bde6ef627f01567afae435c83e7
 fi
-if [ "$device" == "shieldtablet" ] && [ "$version" == "8.1" ]; then
-cd $src_dir/system/sepolicy
-git fetch https://gerrit.omnirom.org/android_system_sepolicy refs/changes/78/27478/1 && git cherry-pick FETCH_HEAD
-fi
+#if [ "$device" == "shieldtablet" ] && [ "$version" == "8.1" ]; then
+#fi
 cd $src_dir
 . build/envsetup.sh
 brunch $device
